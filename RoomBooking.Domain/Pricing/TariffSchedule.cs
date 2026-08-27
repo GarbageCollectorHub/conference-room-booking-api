@@ -41,11 +41,11 @@ namespace RoomBooking.Domain.Pricing
         public IReadOnlyList<TariffSegment> Split(TimeRange booking)
         {
             List<DateTime> splitTimes = GetSplitTimes(booking);
-            var segments = new List<TariffSegment>(splitTimes.Count - 1);
+            List<TariffSegment> segments = new(splitTimes.Count - 1);
 
             for (int i = 0; i < splitTimes.Count - 1; i++)
             {
-                var range = new TimeRange(splitTimes[i], splitTimes[i + 1]);
+                TimeRange range = new(splitTimes[i], splitTimes[i + 1]);
                 TariffPeriod tariff = GetTariffAt(range.Start);
 
                 segments.Add(new TariffSegment(range, tariff));
@@ -59,7 +59,7 @@ namespace RoomBooking.Domain.Pricing
         // Для 17:00-19:00 це 17:00, 18:00 і 19:00, бо о 18:00 змінюється тариф.
         private List<DateTime> GetSplitTimes(TimeRange booking)
         {
-            var splitTimes = new SortedSet<DateTime> { booking.Start, booking.End };
+            SortedSet<DateTime> splitTimes = new() { booking.Start, booking.End };
 
             // У TariffPeriod межі задані як TimeOnly, тобто час доби без дати.
             // Тому прикладаємо їх до кожної дати, якої торкається бронювання.

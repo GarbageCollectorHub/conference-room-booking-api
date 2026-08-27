@@ -19,7 +19,8 @@ namespace RoomBooking.UnitTests.Pricing
         {
             var segments = TariffSchedule.Default.Split(Booking(9, 12));
 
-            var segment = Assert.Single(segments);
+            TariffSegment segment = Assert.Single(segments);
+
             Assert.Equal(TariffType.Standard, segment.Tariff.Type);
             Assert.Equal(1.00m, segment.Tariff.Multiplier);
         }

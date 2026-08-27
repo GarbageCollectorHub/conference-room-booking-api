@@ -18,8 +18,8 @@ namespace RoomBooking.UnitTests.Shared
         [Fact]
         public void Equality_TwoRangesWithSameBounds_AreEqual()
         {
-            var first = new TimeRange(Date.AddHours(9), Date.AddHours(12));
-            var second = new TimeRange(Date.AddHours(9), Date.AddHours(12));
+            TimeRange first = new(Date.AddHours(9), Date.AddHours(12));
+            TimeRange second = new(Date.AddHours(9), Date.AddHours(12));
 
             Assert.Equal(first, second);
         }
