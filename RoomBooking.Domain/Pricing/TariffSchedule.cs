@@ -11,7 +11,7 @@ namespace RoomBooking.Domain.Pricing
         private readonly IReadOnlyList<TariffPeriod> _periods;
 
 
-        // Тарифи за умовами задачі. Multiplier - множник до базової ставки за годину:
+        // Поточні тарифи. Multiplier - множник до базової ставки за годину:
         // 0.90 це знижка 10%, 1.15 це націнка 15%.
         // Пікові години лежать усередині стандартних, тому саме цей період має Priority 1:
         // о 12:00-14:00 нараховується піковий тариф, а не стандартний.
@@ -20,7 +20,8 @@ namespace RoomBooking.Domain.Pricing
         {
             new TariffPeriod(TariffType.Morning,  new TimeOnly(6, 0),  new TimeOnly(9, 0),  0.90m),
             new TariffPeriod(TariffType.Standard, new TimeOnly(9, 0),  new TimeOnly(18, 0), 1.00m),
-            new TariffPeriod(TariffType.Peak,     new TimeOnly(12, 0), new TimeOnly(14, 0), 1.15m, Priority: 1),
+            new TariffPeriod(TariffType.Peak,     new TimeOnly(12, 0), new TimeOnly(14, 0), 1.15m, 
+                priority: 1),
             new TariffPeriod(TariffType.Evening,  new TimeOnly(18, 0), new TimeOnly(23, 0), 0.80m)
         });
 

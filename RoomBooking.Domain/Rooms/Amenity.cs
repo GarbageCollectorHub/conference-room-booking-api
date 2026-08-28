@@ -10,7 +10,7 @@ namespace RoomBooking.Domain.Rooms
         public const int NameMaxLength = 100;
 
         public Guid Id { get; private set; }
-        public string Name { get; private set; }
+        public string Name { get; private set; } = string.Empty;
         public decimal Price { get; private set; }
 
         public Amenity(string name, decimal price)
@@ -38,7 +38,6 @@ namespace RoomBooking.Domain.Rooms
 
         private Amenity()
         {
-            Name = string.Empty;
         }
 
     }

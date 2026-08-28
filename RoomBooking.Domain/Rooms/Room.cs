@@ -11,21 +11,25 @@ namespace RoomBooking.Domain.Rooms
 
 
         public Guid Id { get; private set; }
-        public string Name { get; private set; }
+        public string Name { get; private set; } = string.Empty;
         public int Capacity { get; private set; }
         public decimal PricePerHour { get; private set; }
 
-        public Room(string name, int capacity, decimal pricePerHour)
+        // Тарифи рахуються за місцевим часом залу а не в клієнта.
+        // Бронювання при цьому зберігаються в UTC.
+        public string TimeZoneId { get; private set; } = string.Empty;
+
+        public Room(string name, int capacity, decimal pricePerHour, string timeZoneId)
         {
             Id = Guid.NewGuid();
 
             Rename(name);
             ChangeCapacity(capacity);
             ChangePricePerHour(pricePerHour);
+            ChangeTimeZone(timeZoneId);
         }
         private Room()
         {
-            Name = string.Empty;
         }
 
 
@@ -64,6 +68,36 @@ namespace RoomBooking.Domain.Rooms
             PricePerHour = pricePerHour;
         }
 
+        public void ChangeTimeZone(string timeZoneId)
+        {
+            if (!TimeZoneInfo.TryFindSystemTimeZoneById(timeZoneId, out _))
+            {
+                throw new BusinessRuleException($"Unknown time zone '{timeZoneId}'.");
+            }
+
+            TimeZoneId = timeZoneId;
+        }
+
+        public DateTime ToLocalTime(DateTime utc)
+        {
+            return TimeZoneInfo.ConvertTimeFromUtc(utc, GetTimeZone());
+        }
+
+        public DateTime ToUtc(DateTime localTime)
+        {
+            TimeZoneInfo zone = GetTimeZone();
+
+            // Весной при переводе часов местного времени 03:00–04:00 в этот день не бывает
+            // и ConvertTimeToUtc бросит ArgumentException — то есть 500 вместо внятного ответа
+            if (zone.IsInvalidTime(localTime))
+            {
+                throw new BusinessRuleException($"Time {localTime:HH:mm} does not exist in {TimeZoneId} on this date.");
+            }
+
+            return TimeZoneInfo.ConvertTimeToUtc(localTime, zone);
+        }
+
+
         public void AddAmenity(Amenity amenity)
         {
             if (_amenities.Any(item => item.Name == amenity.Name))
@@ -74,12 +108,9 @@ namespace RoomBooking.Domain.Rooms
             _amenities.Add(amenity);
         }
 
-
-        // Послуги оплачуються один раз за бронювання, тому просто сума цін.
-        // Знижки і націнки на них не поширюються - вони діють лише на оренду залу.
-        public decimal GetAmenitiesPrice(IEnumerable<Guid> amenityIds)
+        public IReadOnlyList<Amenity> GetAmenities(IEnumerable<Guid> amenityIds)
         {
-            decimal total = 0;
+            List<Amenity> selected = new();
 
             foreach (Guid id in amenityIds)
             {
@@ -90,11 +121,24 @@ namespace RoomBooking.Domain.Rooms
                     throw new NotFoundException($"Room does not have amenity {id}.");
                 }
 
-                total += amenity.Price;
+                selected.Add(amenity);
             }
 
-            return total;
+            return selected;
         }
+
+        // Послуги оплачуються один раз за бронювання, тому просто сума цін.
+        // Знижки і націнки на них не поширюються - вони діють лише на оренду залу.
+        public decimal GetAmenitiesPrice(IEnumerable<Guid> amenityIds)
+        {
+            return GetAmenities(amenityIds).Sum(amenity => amenity.Price);
+        }
+
+        private TimeZoneInfo GetTimeZone()
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(TimeZoneId);
+        }
+
 
 
     }
