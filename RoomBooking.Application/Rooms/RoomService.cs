@@ -77,7 +77,7 @@ namespace RoomBooking.Application.Rooms
                 throw new ConflictException("Room has upcoming bookings and cannot be deleted.");
             }
 
-            _rooms.Remove(room);
+            room.MarkDeleted();
             await _rooms.SaveChangesAsync(cancellationToken);
         }
 

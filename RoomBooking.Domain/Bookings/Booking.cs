@@ -2,6 +2,7 @@
 using RoomBooking.Domain.Pricing;
 using RoomBooking.Domain.Rooms;
 using RoomBooking.Domain.Shared;
+using RoomBooking.Domain.Users;
 
 
 namespace RoomBooking.Domain.Bookings
@@ -20,22 +21,31 @@ namespace RoomBooking.Domain.Bookings
 
         // Фіксована ціна на момент бронювання
         public decimal TotalPrice { get; private set; }
-
-        public DateTime CreatedAt { get; private set; }
-        
+        public DateTime CreatedAt { get; private set; } 
         public TimeRange Period => new(Start, End);
 
-        public Booking(Room room, TimeRange localPeriod, IReadOnlyList<Amenity> amenities, BookingPrice price)
+
+        public Guid UserId { get; private set; }
+
+
+        public Booking(
+            Room room,
+            Guid userId,
+            TimeRange localPeriod, 
+            IReadOnlyList<Amenity> amenities, 
+            BookingPrice price       
+            )
         {
             // Перевіряємо місцевий час, а не UTC: є зони зі зміщенням на пів години
             RequireWholeHours(localPeriod);
 
             Id = Guid.NewGuid();
             RoomId = room.Id;
+            UserId = userId;
             Start = room.ToUtc(localPeriod.Start);
             End = room.ToUtc(localPeriod.End);
             TotalPrice = price.Total;
-            CreatedAt = DateTime.UtcNow;
+            CreatedAt = DateTime.UtcNow;         
 
             _amenities.AddRange(amenities);
         }

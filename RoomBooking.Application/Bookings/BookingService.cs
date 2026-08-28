@@ -5,6 +5,7 @@ using RoomBooking.Domain.Exceptions;
 using RoomBooking.Domain.Pricing;
 using RoomBooking.Domain.Rooms;
 using RoomBooking.Domain.Shared;
+using RoomBooking.Domain.Users;
 
 namespace RoomBooking.Application.Bookings
 {
@@ -25,7 +26,11 @@ namespace RoomBooking.Application.Bookings
         }
 
 
-        public async Task<BookingResponse> CreateAsync(CreateBookingRequest request, CancellationToken cancellationToken)
+        public async Task<BookingResponse> CreateAsync(
+            CreateBookingRequest request,
+            Guid userId,
+            CancellationToken cancellationToken
+            )
         {
             Room? room = await _rooms.GetByIdAsync(request.RoomId, cancellationToken);
 
@@ -52,7 +57,7 @@ namespace RoomBooking.Application.Bookings
 
             BookingPrice price = _calculator.Calculate(room.PricePerHour, localPeriod, amenitiesTotal);
 
-            Booking booking = new(room, localPeriod, amenities, price);
+            Booking booking = new(room, userId, localPeriod, amenities, price);
 
             // Транзакція проти race condition
             if (!await _bookings.TryAddAsync(booking, cancellationToken))

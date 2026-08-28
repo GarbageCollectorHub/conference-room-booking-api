@@ -18,6 +18,7 @@ namespace RoomBooking.Domain.Rooms
         // Тарифи рахуються за місцевим часом залу а не в клієнта.
         // Бронювання при цьому зберігаються в UTC.
         public string TimeZoneId { get; private set; } = string.Empty;
+        public bool IsDeleted { get; private set; }
 
         public Room(string name, int capacity, decimal pricePerHour, string timeZoneId)
         {
@@ -32,6 +33,11 @@ namespace RoomBooking.Domain.Rooms
         {
         }
 
+        // Зал не видаляємо, оскільки на нього можуть посилатися минулі бронювання та звіти
+        public void MarkDeleted()
+        {
+            IsDeleted = true;
+        }
 
         public void Rename(string name)
         {

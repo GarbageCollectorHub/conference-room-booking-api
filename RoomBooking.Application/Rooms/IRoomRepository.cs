@@ -7,7 +7,6 @@ namespace RoomBooking.Application.Rooms
     {
 
         void Add(Room room);
-        void Remove(Room room);
 
         Task SaveChangesAsync(CancellationToken cancellationToken);
 
