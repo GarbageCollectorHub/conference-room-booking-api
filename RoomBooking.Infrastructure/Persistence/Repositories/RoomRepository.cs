@@ -31,11 +31,8 @@ namespace RoomBooking.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<IReadOnlyList<Room>> GetAvailableAsync(
-            TimeRange utcPeriod,
-            int capacity,
-            CancellationToken cancellationToken
-            )
+        public async Task<IReadOnlyList<Room>> GetAvailableAsync(TimeRange utcPeriod, int capacity,
+            CancellationToken cancellationToken)
         {
             return await _context.Rooms
                 .Include(room => room.Amenities)
@@ -57,5 +54,15 @@ namespace RoomBooking.Infrastructure.Persistence.Repositories
         {
             await _context.SaveChangesAsync(cancellationToken);
         }
+
+
+        public async Task<bool> NameTakenAsync(string name, Guid? exceptRoomId,
+            CancellationToken cancellationToken)
+        {
+            return await _context.Rooms.AnyAsync(
+                room => room.Name == name && (exceptRoomId == null || room.Id != exceptRoomId),
+                cancellationToken);
+        }
+
     }
 }

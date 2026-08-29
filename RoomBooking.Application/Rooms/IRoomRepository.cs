@@ -19,6 +19,9 @@ namespace RoomBooking.Application.Rooms
             int capacity,
             CancellationToken cancellationToken
             );
+    
+        /// <summary>exceptRoomId потрібен при перейменуванні: власна назва залу не вважається зайнятою</summary>
+        Task<bool> NameTakenAsync(string name, Guid? exceptRoomId, CancellationToken cancellationToken);
 
     }
 

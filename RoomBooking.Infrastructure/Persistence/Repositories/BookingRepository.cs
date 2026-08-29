@@ -75,7 +75,8 @@ namespace RoomBooking.Infrastructure.Persistence.Repositories
             catch (Exception exception) when (IsDeadlock(exception))
             {
                 // Транзакцію відкочено, і чи встиг конкурент зайняти час - достеменно невідомо.
-                // Відповідаємо як на зайнятий зал: дія клієнта та сама
+                // Відповідаємо як на зайнятий зал,
+                // Повніше рішення - повторити транзакцію.
                 return false;
             }
         }

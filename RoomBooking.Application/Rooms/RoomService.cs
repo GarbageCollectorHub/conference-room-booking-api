@@ -19,8 +19,17 @@ namespace RoomBooking.Application.Rooms
         }
 
 
+        public async Task<RoomResponse> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+        {
+            Room room = await GetRequiredAsync(id, cancellationToken);
+
+            return room.ToResponse();
+        }
+
         public async Task<RoomResponse> CreateAsync(CreateRoomRequest request, CancellationToken cancellationToken)
         {
+            await EnsureNameIsFreeAsync(request.Name, exceptRoomId: null, cancellationToken);
+
             Room room = new(request.Name, request.Capacity, request.PricePerHour, request.TimeZoneId);
 
             foreach (AmenityRequest amenity in request.Amenities)
@@ -34,12 +43,11 @@ namespace RoomBooking.Application.Rooms
             return room.ToResponse();
         }
 
-        public async Task<RoomResponse> UpdateAsync(
-            Guid id,
-            UpdateRoomRequest request,
-            CancellationToken cancellationToken
-            )
+        public async Task<RoomResponse> UpdateAsync(Guid id, UpdateRoomRequest request,
+            CancellationToken cancellationToken)
         {
+            await EnsureNameIsFreeAsync(request.Name, exceptRoomId: id, cancellationToken);
+
             Room room = await GetRequiredAsync(id, cancellationToken);
 
             room.Rename(request.Name);
@@ -52,11 +60,8 @@ namespace RoomBooking.Application.Rooms
             return room.ToResponse();
         }
 
-        public async Task<RoomResponse> AddAmenityAsync(
-            Guid id,
-            AmenityRequest request,
-            CancellationToken cancellationToken
-            )
+        public async Task<RoomResponse> AddAmenityAsync(Guid id, AmenityRequest request,
+            CancellationToken cancellationToken)
         {
             Room room = await GetRequiredAsync(id, cancellationToken);
 
@@ -114,6 +119,15 @@ namespace RoomBooking.Application.Rooms
             }
 
             return room;
+        }
+
+        private async Task EnsureNameIsFreeAsync(string name, Guid? exceptRoomId,
+            CancellationToken cancellationToken)
+        {
+            if (await _rooms.NameTakenAsync(name, exceptRoomId, cancellationToken))
+            {
+                throw new ConflictException($"Room '{name}' already exists.");
+            }
         }
 
     }
