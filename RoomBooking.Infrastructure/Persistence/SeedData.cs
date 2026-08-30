@@ -1,19 +1,33 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RoomBooking.Application.Users;
 using RoomBooking.Domain.Rooms;
+using RoomBooking.Domain.Users;
 
 namespace RoomBooking.Infrastructure.Persistence
 {
     // Початкові дані, щоб застосунок був придатний до роботи одразу після запуску.
-    public static class SeedData
+    public sealed class SeedData
     {
         private const string DefaultTimeZoneId = "Europe/Kyiv";
 
-        public static async Task EnsureSeededAsync(
-            RoomBookingDbContext context,
-            CancellationToken cancellationToken = default
-            )
+        private readonly RoomBookingDbContext _context;
+        private readonly IPasswordHasher _passwordHasher;
+
+        public SeedData(RoomBookingDbContext context, IPasswordHasher passwordHasher)
         {
-            if (await context.Rooms.AnyAsync(cancellationToken))
+            _context = context;
+            _passwordHasher = passwordHasher;
+        }
+
+        public async Task SeedAsync(CancellationToken cancellationToken = default)
+        {
+            await SeedRoomsAsync(cancellationToken);
+            await SeedUsersAsync(cancellationToken);
+        }
+
+        private async Task SeedRoomsAsync(CancellationToken cancellationToken)
+        {
+            if (await _context.Rooms.AnyAsync(cancellationToken))
             {
                 return;
             }
@@ -31,12 +45,24 @@ namespace RoomBooking.Infrastructure.Persistence
             Room hallC = new("Hall C", 30, 1500m, DefaultTimeZoneId);
             hallC.AddAmenity(new Amenity("Wi-Fi", 300m));
 
-            context.Rooms.AddRange(hallA, hallB, hallC);
+            _context.Rooms.AddRange(hallA, hallB, hallC);
 
-            await context.SaveChangesAsync(cancellationToken);
-
-
+            await _context.SaveChangesAsync(cancellationToken);
         }
-  
+
+        private async Task SeedUsersAsync(CancellationToken cancellationToken)
+        {
+            if (await _context.Users.AnyAsync(cancellationToken))
+            {
+                return;
+            }
+
+            User admin = new("admin@example.com", _passwordHasher.Hash("admin"), UserRole.Admin);
+            User client = new("tester@example.com", _passwordHasher.Hash("tester"), UserRole.Client);
+
+            _context.Users.AddRange(admin, client);
+
+            await _context.SaveChangesAsync(cancellationToken);
+        }
     }
 }

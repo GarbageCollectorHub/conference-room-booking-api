@@ -2,9 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using RoomBooking.Api.ErrorHandling;
 using RoomBooking.Application.Bookings;
 using RoomBooking.Application.Rooms;
+using RoomBooking.Application.Users;
 using RoomBooking.Domain.Pricing;
 using RoomBooking.Infrastructure.Persistence;
 using RoomBooking.Infrastructure.Persistence.Repositories;
+using RoomBooking.Infrastructure.Security;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 
@@ -43,21 +45,28 @@ builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<RoomService>();
 builder.Services.AddScoped<BookingService>();
 
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<AuthService>();
+
+builder.Services.AddScoped<SeedData>();
+
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+builder.Services.AddSingleton<ITokenService, JwtTokenService>();
+
 builder.Services.AddSingleton(TariffSchedule.Default);
 builder.Services.AddSingleton<RentalPriceCalculator>();
 
 
 var app = builder.Build();
 
-// Створення бази з міграцій і початкові дані.
+// Створення бази з міграцій і початкові дані
 if (app.Environment.IsDevelopment())
 {
     using IServiceScope scope = app.Services.CreateScope();
-
     RoomBookingDbContext context = scope.ServiceProvider.GetRequiredService<RoomBookingDbContext>();
 
     await context.Database.MigrateAsync();
-    await SeedData.EnsureSeededAsync(context);
+    await scope.ServiceProvider.GetRequiredService<SeedData>().SeedAsync();
 }
 
 app.UseExceptionHandler();

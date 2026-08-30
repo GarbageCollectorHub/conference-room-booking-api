@@ -25,12 +25,17 @@ namespace RoomBooking.Domain.Users
             }
 
             Id = Guid.NewGuid();
-            Email = email.Trim().ToLowerInvariant();
+            Email = NormalizeEmail(email);
             PasswordHash = passwordHash;
             Role = role;
         }
 
         private User() { }
+
+        public static string NormalizeEmail(string email)
+        {
+            return email.Trim().ToLowerInvariant();
+        }
 
     }
 }
