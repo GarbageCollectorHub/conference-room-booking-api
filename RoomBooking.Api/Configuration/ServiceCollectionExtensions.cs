@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using RoomBooking.Infrastructure.Security;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 using System.Security.Claims;
+using System.Threading.RateLimiting;
 
 namespace RoomBooking.Api
 {
@@ -111,5 +113,33 @@ namespace RoomBooking.Api
             return key.StartsWith("$.", StringComparison.Ordinal) || error.Exception is not null;
         }
 
+
+        // Rate Limiter
+        public static IServiceCollection AddRequestRateLimiting(this IServiceCollection services)
+        {
+            services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                // Auth - 5 per minute
+                options.AddFixedWindowLimiter("auth", limiter =>
+                {
+                    limiter.PermitLimit = 5;
+                    limiter.Window = TimeSpan.FromMinutes(1);
+                });
+
+                // global limit на IP adrress
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 100,
+                            Window = TimeSpan.FromMinutes(1)
+                        }));
+            });
+
+            return services;
+        }
     }
 }

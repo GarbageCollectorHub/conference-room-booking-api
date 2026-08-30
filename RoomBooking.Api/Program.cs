@@ -2,6 +2,7 @@
 using RoomBooking.Api;
 using RoomBooking.Api.ErrorHandling;
 using RoomBooking.Application.Bookings;
+using RoomBooking.Application.Reports;
 using RoomBooking.Application.Rooms;
 using RoomBooking.Application.Users;
 using RoomBooking.Domain.Pricing;
@@ -40,7 +41,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<RoomService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<SeedData>();
+
+builder.Services.AddRequestRateLimiting();
 
 builder.Services.AddSingleton(TariffSchedule.Default);
 builder.Services.AddSingleton<RentalPriceCalculator>();
@@ -75,6 +79,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 

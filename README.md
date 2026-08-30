@@ -1,7 +1,14 @@
+
+
+
+
 # Conference Room Booking API
 
 API для оренди конференц-залів: керування залами, пошук вільних, бронювання
 з розрахунком вартості.
+
+> Архітектурні та бізнес-рішення з поясненнями — **[DECISIONS.md](DECISIONS.md)**.
+
 
 ## Як запустити
 
@@ -31,7 +38,7 @@ API для оренди конференц-залів: керування зал
 
 ```json
 {
-  "roomId": "<id залу з кроку 2>",
+  "roomId": "<id залу з кроку 2>",п
   "start": "2026-09-15T10:00:00+03:00",
   "end": "2026-09-15T14:00:00+03:00",
   "amenityIds": []
@@ -41,6 +48,23 @@ API для оренди конференц-залів: керування зал
    У відповіді буде вартість із розбивкою: 10:00–12:00 за базовою ставкою,
    12:00–14:00 з націнкою 15%.
 4. Той самий запит удруге — 409, зал уже зайнятий.
+
+## API
+
+| Method  | Endpoint  |      Access Role  |
+|-------|-------------|----------------|
+| POST | `/api/auth/register` | Anonymous |
+| POST | `/api/auth/login`    | Anonymous |
+| GET | `/api/rooms`          | Anonymous |
+| GET | `/api/rooms/{id}`     | Anonymous |
+| GET | `/api/rooms/available` | Anonymous |
+| POST | `/api/rooms`		  | Admin |
+| PUT | `/api/rooms/{id}`	  | Admin |
+| POST | `/api/rooms/{id}/amenities` | Admin |
+| DELETE | `/api/rooms/{id}`  | Admin |
+| POST | `/api/bookings`     | Admin, Client |
+| GET | `/api/reports/rooms` | Admin |
+| GET | `/api/reports/daily` | Admin |
 
 
 ## Тарифи

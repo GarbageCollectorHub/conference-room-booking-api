@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RoomBooking.Application.Users;
 using RoomBooking.Application.Users.DTOs;
 
@@ -8,6 +9,7 @@ namespace RoomBooking.Api.Controllers
     /// <summary>Auth сontroller</summary>
     [ApiController]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     [Route("api/auth")]
     public sealed class AuthController : ControllerBase
     {
