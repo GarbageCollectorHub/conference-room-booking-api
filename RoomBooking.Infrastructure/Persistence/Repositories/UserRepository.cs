@@ -19,6 +19,7 @@ namespace RoomBooking.Infrastructure.Persistence.Repositories
             string normalized = User.NormalizeEmail(email);
 
             return await _context.Users
+                .AsNoTracking()
                 .FirstOrDefaultAsync(user => user.Email == normalized, cancellationToken);
         }
 

@@ -47,6 +47,7 @@ namespace RoomBooking.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken)
         {
             return await _context.Bookings
+                .AsNoTracking()
                 .Where(booking => booking.Start < utcPeriod.End && utcPeriod.Start < booking.End)
                 .ToListAsync(cancellationToken);
         }

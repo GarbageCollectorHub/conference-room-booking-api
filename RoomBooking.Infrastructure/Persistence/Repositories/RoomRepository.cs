@@ -26,6 +26,7 @@ namespace RoomBooking.Infrastructure.Persistence.Repositories
         public async Task<IReadOnlyList<Room>> GetAllAsync(CancellationToken cancellationToken)
         {
             return await _context.Rooms
+                .AsNoTracking()
                 .Include(room => room.Amenities)
                 .OrderBy(room => room.Name)
                 .ToListAsync(cancellationToken);
@@ -35,6 +36,7 @@ namespace RoomBooking.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken)
         {
             return await _context.Rooms
+                .AsNoTracking()
                 .Include(room => room.Amenities)
                 .Where(room => room.Capacity >= capacity)
                 .Where(room => !_context.Bookings.Any(booking =>
