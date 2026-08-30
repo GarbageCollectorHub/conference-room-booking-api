@@ -10,6 +10,8 @@ namespace RoomBooking.Infrastructure.Persistence.Configurations
         {
             builder.HasKey(room => room.Id);
 
+            builder.Property(room => room.Id).ValueGeneratedNever();
+
             builder.Property(room => room.Name)
                 .IsRequired()
                 .HasMaxLength(Room.NameMaxLength);

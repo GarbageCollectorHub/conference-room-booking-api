@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RoomBooking.Application.Rooms;
 using RoomBooking.Application.Rooms.DTOs;
 
@@ -54,6 +55,7 @@ namespace RoomBooking.Api.Controllers
 
         /// <summary>Creates a room with its amenities.</summary>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<RoomResponse>> Create(
             CreateRoomRequest request,
             CancellationToken cancellationToken)
@@ -66,6 +68,7 @@ namespace RoomBooking.Api.Controllers
 
         /// <summary>Updates name, capacity, price per hour or time zone.</summary>
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<RoomResponse> Update(
             Guid id,
             UpdateRoomRequest request,
@@ -77,6 +80,7 @@ namespace RoomBooking.Api.Controllers
 
         /// <summary>Adds one amenity to the room.</summary>
         [HttpPost("{id:guid}/amenities")]
+        [Authorize(Roles = "Admin")]
         public async Task<RoomResponse> AddAmenity(
             Guid id,
             AmenityRequest request,
@@ -88,6 +92,7 @@ namespace RoomBooking.Api.Controllers
 
         /// <summary>Deletes a room. A room with future bookings cannot be deleted.</summary>
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
             await _rooms.DeleteAsync(id, cancellationToken);

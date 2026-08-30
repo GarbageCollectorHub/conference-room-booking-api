@@ -1,4 +1,5 @@
-using Microsoft.EntityFrameworkCore;
+п»їusing Microsoft.EntityFrameworkCore;
+using RoomBooking.Api;
 using RoomBooking.Api.ErrorHandling;
 using RoomBooking.Application.Bookings;
 using RoomBooking.Application.Rooms;
@@ -7,22 +8,15 @@ using RoomBooking.Domain.Pricing;
 using RoomBooking.Infrastructure.Persistence;
 using RoomBooking.Infrastructure.Persistence.Repositories;
 using RoomBooking.Infrastructure.Security;
-using Swashbuckle.AspNetCore.Filters;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddSwaggerGen(options =>
-{
-    string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+builder.Services.AddApiDocumentation();
+builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddValidationResponses();
 
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFile));
-    options.ExampleFilters();
-});
-
-builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
 
 builder.Services.AddProblemDetails(options =>
 {
@@ -41,25 +35,22 @@ builder.Services.AddDbContext<RoomBookingDbContext>(options =>
 
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<RoomService>();
 builder.Services.AddScoped<BookingService>();
-
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<AuthService>();
-
 builder.Services.AddScoped<SeedData>();
-
-builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
-builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 
 builder.Services.AddSingleton(TariffSchedule.Default);
 builder.Services.AddSingleton<RentalPriceCalculator>();
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 
 
 var app = builder.Build();
 
-// Створення бази з міграцій і початкові дані
+// РЎС‚РІРѕСЂРµРЅРЅСЏ Р±Р°Р·Рё Р· РјС–РіСЂР°С†С–Р№ С– РїРѕС‡Р°С‚РєРѕРІС– РґР°РЅС–
 if (app.Environment.IsDevelopment())
 {
     using IServiceScope scope = app.Services.CreateScope();
@@ -70,6 +61,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
 {
@@ -81,6 +73,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

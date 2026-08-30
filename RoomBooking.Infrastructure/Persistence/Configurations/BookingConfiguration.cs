@@ -12,6 +12,8 @@ namespace RoomBooking.Infrastructure.Persistence.Configurations
         {
             builder.HasKey(booking => booking.Id);
 
+            builder.Property(booking => booking.Id).ValueGeneratedNever();
+
             builder.HasOne<Room>()
                 .WithMany()
                 .HasForeignKey(booking => booking.RoomId)

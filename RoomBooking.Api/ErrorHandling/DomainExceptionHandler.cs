@@ -8,7 +8,6 @@ namespace RoomBooking.Api.ErrorHandling
     {
         private readonly IProblemDetailsService _problemDetails;
 
-
         public DomainExceptionHandler(IProblemDetailsService problemDetails)
         {
             _problemDetails = problemDetails;
@@ -17,19 +16,18 @@ namespace RoomBooking.Api.ErrorHandling
         public async ValueTask<bool> TryHandleAsync(
             HttpContext httpContext,
             Exception exception,
-            CancellationToken cancellationToken
-            )
+            CancellationToken cancellationToken)
         {
             int? statusCode = exception switch
             {
                 NotFoundException => StatusCodes.Status404NotFound,
                 ConflictException => StatusCodes.Status409Conflict,
+                UnauthorizedException => StatusCodes.Status401Unauthorized,
                 BusinessRuleException => StatusCodes.Status400BadRequest,
                 _ => null
             };
 
-            // Не наша помилка: віддаємо стандартному обробнику, який поверне 500
-            // без подробиць і запише виняток у лог.
+            // Не наша помилка - далі её обробляє UseExceptionHandler
             if (statusCode is null)
             {
                 return false;
@@ -37,17 +35,30 @@ namespace RoomBooking.Api.ErrorHandling
 
             httpContext.Response.StatusCode = statusCode.Value;
 
-            return await _problemDetails.TryWriteAsync(new ProblemDetailsContext
+            ProblemDetails problem = new()
+            {
+                Status = statusCode,
+                Title = "Request cannot be completed.",
+                Detail = exception.Message
+            };
+
+            ProblemDetailsContext problemContext = new()
             {
                 HttpContext = httpContext,
                 Exception = exception,
-                ProblemDetails = new ProblemDetails
-                {
-                    Status = statusCode,
-                    Title = "Request cannot be completed.",
-                    Detail = exception.Message
-                }
-            });
+                ProblemDetails = problem
+            };
+
+            // ProblemDetailsService не пише відповідь, якщо клієнт просить тип, який він
+            // не обслуговує (Swagger шле accept: text/plain). Тоді формуємо тіло самі.
+            if (!await _problemDetails.TryWriteAsync(problemContext))
+            {
+                problem.Extensions["traceId"] = httpContext.TraceIdentifier;
+
+                await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken);
+            }
+
+            return true;
         }
     }
 }
