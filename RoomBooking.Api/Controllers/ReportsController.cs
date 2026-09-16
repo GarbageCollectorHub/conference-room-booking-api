@@ -20,29 +20,23 @@ namespace RoomBooking.Api.Controllers
         }
 
         /// <summary>Bookings and revenue for each room.</summary>
-        /// <param name="from">Period start with offset, for example 2026-09-01T00:00:00+03:00</param>
-        /// <param name="to">Period end in the same format.</param>
-        /// <param name="cancellationToken">Cancels the request.</param>
+        /// <remarks>From and To take time with offset, for example 2026-09-01T00:00:00+03:00.</remarks>
         [HttpGet("rooms")]
         public async Task<IReadOnlyList<RoomReportItem>> GetRooms(
-            [FromQuery] DateTimeOffset from,
-            [FromQuery] DateTimeOffset to,
+            [FromQuery] ReportPeriodQuery query,
             CancellationToken cancellationToken)
         {
-            return await _reports.GetRoomStatsAsync(new TimeRange(from.UtcDateTime, to.UtcDateTime), cancellationToken);
+            return await _reports.GetRoomStatsAsync(new TimeRange(query.From.UtcDateTime, query.To.UtcDateTime), cancellationToken);
         }
 
         /// <summary>Bookings and revenue per day.</summary>
-        /// <param name="from">Period start with offset, for example 2026-09-01T00:00:00+03:00</param>
-        /// <param name="to">Period end in the same format.</param>
-        /// <param name="cancellationToken">Cancels the request.</param>
+        /// <remarks>From and To take time with offset, for example 2026-09-01T00:00:00+03:00.</remarks>
         [HttpGet("daily")]
         public async Task<IReadOnlyList<DailyReportItem>> GetDaily(
-            [FromQuery] DateTimeOffset from,
-            [FromQuery] DateTimeOffset to,
+            [FromQuery] ReportPeriodQuery query,
             CancellationToken cancellationToken)
         {
-            return await _reports.GetDailyStatsAsync(new TimeRange(from.UtcDateTime, to.UtcDateTime), cancellationToken);
+            return await _reports.GetDailyStatsAsync(new TimeRange(query.From.UtcDateTime, query.To.UtcDateTime), cancellationToken);
         }
     }
 }

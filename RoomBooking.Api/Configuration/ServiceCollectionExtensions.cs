@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using RoomBooking.Api.Validation;
+using RoomBooking.Application.Bookings.Validators;
 using RoomBooking.Infrastructure.Security;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
@@ -77,8 +80,22 @@ namespace RoomBooking.Api
             return services;
         }
 
-        public static IServiceCollection AddValidationResponses(this IServiceCollection services)
+        public static IServiceCollection AddRequestValidation(this IServiceCollection services)
         {
+            // Без цього стандартні тексти помилок FluentValidation залежать від мови ОС сервера.
+            ValidatorOptions.Global.LanguageManager.Enabled = false;
+
+            services.AddValidatorsFromAssemblyContaining<CreateBookingRequestValidator>();
+
+            services.Configure<MvcOptions>(options =>
+            {
+                options.Filters.Add<ValidationFilter>();
+
+                // Без цього ASP.NET відхиляє запит із відсутнім полем ще до валідаторів,
+                // і решта помилок у відповідь не потрапляє
+                options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+            });
+
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = context =>
@@ -122,16 +139,19 @@ namespace RoomBooking.Api
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
                 // Auth - 5 per minute
-                options.AddFixedWindowLimiter("auth", limiter =>
-                {
-                    limiter.PermitLimit = 5;
-                    limiter.Window = TimeSpan.FromMinutes(1);
-                });
+                options.AddPolicy("auth", context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        GetClientIp(context),
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromMinutes(1)
+                        }));
 
                 // global limit на IP adrress
                 options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
                     RateLimitPartition.GetFixedWindowLimiter(
-                        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        GetClientIp(context),
                         _ => new FixedWindowRateLimiterOptions
                         {
                             PermitLimit = 100,
@@ -140,6 +160,12 @@ namespace RoomBooking.Api
             });
 
             return services;
+        }
+
+        // При деплої за reverse proxy тут буде IP проксі а не клієнта, знадобиться ForwardedHeaders
+        private static string GetClientIp(HttpContext context)
+        {
+            return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         }
     }
 }

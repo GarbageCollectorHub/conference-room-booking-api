@@ -38,18 +38,16 @@ namespace RoomBooking.Api.Controllers
 
 
         /// <summary>Returns rooms that are free for the given time.</summary>
-        /// <param name="start">Start time with offset, for example 2026-09-01T10:00:00+03:00</param>
-        /// <param name="end">End time in the same format.</param>
-        /// <param name="capacity">How many people the room must fit.</param>
-        /// <param name="cancellationToken">Cancels the request</param>
+        /// <remarks>
+        /// Start and End take time with offset, for example 2026-09-01T10:00:00+03:00.
+        /// Capacity is how many people the room must fit.
+        /// </remarks>
         [HttpGet("available")]
         public async Task<IReadOnlyList<RoomResponse>> GetAvailable(
-            [FromQuery] DateTimeOffset start,
-            [FromQuery] DateTimeOffset end,
-            [FromQuery] int capacity,
+            [FromQuery] AvailableRoomsQuery query,
             CancellationToken cancellationToken)
         {
-            return await _rooms.FindAvailableAsync(start, end, capacity, cancellationToken);
+            return await _rooms.FindAvailableAsync(query.Start, query.End, query.Capacity, cancellationToken);
         }
 
 

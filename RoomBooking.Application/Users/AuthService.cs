@@ -6,8 +6,8 @@ namespace RoomBooking.Application.Users
 {
     public sealed class AuthService
     {
-        // нехай буде 3, без доп валидации
-        private const int PasswordMinLength = 3;
+        // навмисно малий, щоб під час перевірки швидко реєструватися
+        internal const int PasswordMinLength = 3;
 
         private readonly IUserRepository _users;
         private readonly IPasswordHasher _passwordHasher;

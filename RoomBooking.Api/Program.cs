@@ -16,7 +16,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddApiDocumentation();
 builder.Services.AddJwtAuthentication(builder.Configuration);
-builder.Services.AddValidationResponses();
+builder.Services.AddRequestValidation();
 
 
 builder.Services.AddProblemDetails(options =>
