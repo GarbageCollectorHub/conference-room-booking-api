@@ -43,40 +43,32 @@ namespace RoomBooking.Infrastructure.Persistence.Repositories
         }
 
 
-        // Serializable ізолює перевірку і вставку, щоб паралельна транзакція не створила
-        // конфліктне бронювання, поки ця не завершилась.
+        // Блокуємо рядок залу до кінця транзакції: конкурентні бронювання одного залу очікують одне одного,
+        // а для різних залів можуть виконуватися паралельно.
         public async Task<bool> TryAddAsync(Booking booking, CancellationToken cancellationToken)
         {
             await using IDbContextTransaction transaction = await _context.Database
-                .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+                .BeginTransactionAsync(cancellationToken);
 
-            try
+            // UPDLOCK тримається до Commit або Rollback. Другий запит на цей зал чекає тут,
+            // звичайні читання залу (GET) не блокуються. Синтаксис SQL Server.
+            await _context.Database.ExecuteSqlAsync(
+                $"SELECT Id FROM Rooms WITH (UPDLOCK, ROWLOCK) WHERE Id = {booking.RoomId}",
+                cancellationToken);
+
+            // Перевіряємо бронювання після отримання доступу до кімнати через UPDLOCK, щоб уникнути race condition
+            if (await HasBookingAsync(booking.RoomId, booking.Period, cancellationToken))
             {
-                if (await HasBookingAsync(booking.RoomId, booking.Period, cancellationToken))
-                {
-                    return false;
-                }
-
-                _context.Bookings.Add(booking);
-
-                await _context.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-
-                return true;
-            }
-            catch (Exception exception) when (IsDeadlock(exception))
-            {
-                // Транзакцію відкочено, і чи встиг конкурент зайняти час - достеменно невідомо.
-                // Відповідаємо як на зайнятий зал,
-                // Повніше рішення - повторити транзакцію.
                 return false;
             }
+
+            _context.Bookings.Add(booking);
+
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return true;
         }
 
-        private static bool IsDeadlock(Exception exception)
-        {
-            return exception is SqlException { Number: DeadlockErrorNumber }
-                || exception.InnerException is SqlException { Number: DeadlockErrorNumber };
-        }
     }
 }
