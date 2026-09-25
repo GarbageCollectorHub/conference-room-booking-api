@@ -133,12 +133,6 @@ namespace RoomBooking.Domain.Rooms
             return selected;
         }
 
-        // Послуги оплачуються один раз за бронювання, тому просто сума цін.
-        // Знижки і націнки на них не поширюються - вони діють лише на оренду залу.
-        public decimal GetAmenitiesPrice(IEnumerable<Guid> amenityIds)
-        {
-            return GetAmenities(amenityIds).Sum(amenity => amenity.Price);
-        }
 
         private TimeZoneInfo GetTimeZone()
         {

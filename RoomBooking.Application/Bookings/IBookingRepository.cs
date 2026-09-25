@@ -12,8 +12,6 @@ namespace RoomBooking.Application.Bookings
 
         Task<bool> HasBookingAsync(Guid roomId, TimeRange utcPeriod, CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<Booking>> GetInPeriodAsync(TimeRange utcPeriod, CancellationToken cancellationToken);
-
         Task<bool> HasFutureBookingsAsync(Guid roomId, CancellationToken cancellationToken);
 
     }

@@ -42,15 +42,6 @@ namespace RoomBooking.Infrastructure.Persistence.Repositories
                 cancellationToken);
         }
 
-        public async Task<IReadOnlyList<Booking>> GetInPeriodAsync(
-            TimeRange utcPeriod,
-            CancellationToken cancellationToken)
-        {
-            return await _context.Bookings
-                .AsNoTracking()
-                .Where(booking => booking.Start < utcPeriod.End && utcPeriod.Start < booking.End)
-                .ToListAsync(cancellationToken);
-        }
 
         // Serializable ізолює перевірку і вставку, щоб паралельна транзакція не створила
         // конфліктне бронювання, поки ця не завершилась.
