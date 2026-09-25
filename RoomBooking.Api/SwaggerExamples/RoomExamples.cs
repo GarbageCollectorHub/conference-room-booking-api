@@ -17,13 +17,14 @@ namespace RoomBooking.Api.SwaggerExamples
                 [new AmenityRequest("Projector", 333m)]);
         }
 
-        public sealed class UpdateRoomRequestExample : IExamplesProvider<UpdateRoomRequest>
-        {
-            public UpdateRoomRequest GetExamples()
-            {
-                return new UpdateRoomRequest("Hall A", 60, 2200m, "Europe/Kyiv");
-            }
-        }
-
     }
+
+    public sealed class UpdateRoomRequestExample : IExamplesProvider<UpdateRoomRequest>
+    {
+        public UpdateRoomRequest GetExamples()
+        {
+            return new UpdateRoomRequest("Hall A", 60, 2200m, "Europe/Kyiv");
+        }
+    }
+
 }

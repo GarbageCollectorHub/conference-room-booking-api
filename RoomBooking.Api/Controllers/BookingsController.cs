@@ -20,6 +20,7 @@ namespace RoomBooking.Api.Controllers
         }
 
         /// <summary>Books a room and returns the total price with a breakdown by tariff</summary>
+        /// <remarks>Booking must start and end on a full hour.</remarks>
         [HttpPost]
         public async Task<BookingResponse> Create(
             CreateBookingRequest request,
@@ -27,6 +28,7 @@ namespace RoomBooking.Api.Controllers
         {
             return await _bookings.CreateAsync(request, GetUserId(), cancellationToken);
         }
+
 
         // Беремо користувача iз токена
         private Guid GetUserId()
