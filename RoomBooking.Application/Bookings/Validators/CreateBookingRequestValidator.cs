@@ -9,7 +9,10 @@ namespace RoomBooking.Application.Bookings.Validators
         {
             RuleFor(request => request.RoomId).NotEmpty();
 
-            RuleFor(request => request.Start).NotEmpty();
+            RuleFor(request => request.Start)
+                .NotEmpty()
+                .GreaterThan(DateTimeOffset.UtcNow)
+                .WithMessage("Start must be in the future."); ;
 
             RuleFor(request => request.End)
                 .Cascade(CascadeMode.Stop)
